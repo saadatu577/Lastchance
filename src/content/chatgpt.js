@@ -233,7 +233,7 @@
     return { confirmed: false, signal: "timeout" };
   }
 
-  async function submitPrompt(prompt) {
+  async function submitPrompt(prompt, options = {}) {
     if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
       return { ok: false, error: "Prompt is empty or invalid." };
     }
