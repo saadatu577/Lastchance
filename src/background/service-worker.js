@@ -9,6 +9,7 @@ async function configureSidePanel() {
 
   try {
     await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
+    await chrome.action.setPopup({ popup: "" });
   } catch (error) {
     console.warn("[LovaRPM] Não foi possível configurar o painel lateral:", error);
   }

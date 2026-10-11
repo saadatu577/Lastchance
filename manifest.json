@@ -23,6 +23,7 @@
   },
   "action": {
     "default_title": "LovaRPM",
+    "default_popup": "src/popup/popup.html",
     "default_icon": {
       "16": "assets/icon16.png",
       "32": "assets/icon32.png",
