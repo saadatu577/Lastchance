@@ -1,6 +1,7 @@
 import "./runtime-integrity.js";
 import "./license-background.js";
 import "../content/chatgpt-visibility.js";
+import "./chatgpt-visibility.js";
 import "./update-refresh.js";
 import "./service-worker.js";
 import "./composer-background.js";
