@@ -77,8 +77,8 @@
   function read() {
     const input = state.composer;
     if (!input) return "";
-    if (input instanceof HTMLTextAreaElement || input instanceof HTMLInputElement) return input.value.trim();
-    return (input.innerText || input.textContent || "").trim();
+    if (input instanceof HTMLTextAreaElement || input instanceof HTMLInputElement) return input.value;
+    return input.innerText || input.textContent || "";
   }
 
   function write(text) {

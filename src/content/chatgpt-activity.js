@@ -4,8 +4,8 @@
   window.__LOVABURST_CHATGPT_ACTIVITY__ = true;
 
   const KEY = "projectRunStatuses";
-  const PROJECT_RE = /(?:LOVABLE_PROJECT|BASE44_APP):\s*([A-Za-z0-9-]+)/i;
-  const REQUEST_MARKERS = ["[LOVABURST_REQUEST_V3]", "[LOVABURST_REQUEST_V2]", "[LOVABURST_REQUEST_V1]", "[LOVARPM_REQUEST_V3]", "[LOVARPM_REQUEST_V2]", "[LOVARPM_REQUEST_V1]"];
+  const PROJECT_RE = /(?:LOVABLE_PROJECT|BASE44_APP|lovable_project_id):\s*([A-Za-z0-9-]+)/i;
+  const REQUEST_MARKERS = ["[PRM_BUILD_REQUEST_V5]", "[PRM_BUILD_REQUEST_V4]", "[LOVABURST_REQUEST_V3]", "[LOVABURST_REQUEST_V2]", "[LOVABURST_REQUEST_V1]", "[LOVARPM_REQUEST_V3]", "[LOVARPM_REQUEST_V2]", "[LOVARPM_REQUEST_V1]"];
   const isLovaRPMRequest = (text) => REQUEST_MARKERS.some((marker) => String(text || "").includes(marker));
   const ACTION_RE = /^(implementando|analisando|validando|verificando|lendo|pesquisando|atualizando|criando|editando|preparando|processando|reviewing|implementing|analyzing|analysing|validating|checking|reading|searching|updating|creating|editing|preparing|processing)\b/i;
   const SECRET_RE = /(service[_ -]?role|database password|access token|refresh token|private key|secret key|bearer\s+[a-z0-9._-]+)/i;
@@ -107,7 +107,7 @@
     return messages.slice(requestIndex + 1).some((element) => {
       if (element.getAttribute("data-message-author-role") !== "assistant") return false;
       const text = String(element.innerText || element.textContent || "");
-      return /\[LOVABURST_(DONE|BLOCKED|ERROR)\]/.test(text);
+      return /\[(?:LOVABURST|LOVARPM|PRM)_(?:DONE|BLOCKED|ERROR)\]/.test(text);
     });
   }
 

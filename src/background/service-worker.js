@@ -1,5 +1,6 @@
 import { getConfig, setConfig } from "../shared/storage.js";
-import { getPromptSkillIds, withSkillInstructions } from "../shared/skill-instructions.js";
+import { getPromptSkillIds } from "../shared/skill-instructions.js";
+import { assemblePrmBuildRequest } from "../shared/prm-build-request.js";
 
 const CHATGPT_URL_PATTERNS = ["https://chatgpt.com/*"];
 const CHATGPT_BRIDGE_FILE = "src/content/chatgpt.js";
@@ -377,7 +378,7 @@ async function relayPromptToChatGpt(payload, sourceTabId = null) {
 
   const preparedPrompt = await globalThis.LovaRPMLicense?.preparePrompt?.("main", payload);
   if (!preparedPrompt) throw new Error("The server did not prepare the operation.");
-  const prompt = withSkillInstructions(preparedPrompt, payload.skills);
+  const prompt = await assemblePrmBuildRequest({ ...payload, text: preparedPrompt }, payload.skills);
   let sourceTab = null;
   let activatedChatForDispatch = false;
 
@@ -473,7 +474,7 @@ async function setProjectRunStatus(projectId, patch) {
 async function handleCapturedPrompt(message, sender) {
   const payload = message.payload;
 
-  if (!payload?.text || typeof payload.text !== "string" || !payload.text.trim()) {
+  if (typeof payload?.text !== "string" || !payload.text.trim()) {
     return { ok: false, error: "Prompt is empty or invalid." };
   }
 
@@ -502,7 +503,7 @@ async function handleCapturedPrompt(message, sender) {
   const bootstrap = await accessBootstrapState(lovableProjectId);
 
   const pendingPrompt = {
-    text: payload.text.trim(),
+    text: payload.text,
     url: payload.url || "",
     title: payload.title || "",
     capturedAt: payload.capturedAt || new Date().toISOString(),
@@ -622,7 +623,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Mark access bootstrap complete only after a successful ChatGPT completion.
     const marker = String(message.marker || "");
     const projectId = String(message.projectId || "");
-    if (marker === "[LOVABURST_DONE]" || marker === "[LOVARPM_DONE]") {
+    if (marker === "[LOVABURST_DONE]" || marker === "[LOVARPM_DONE]" || marker === "[PRM_DONE]") {
       chrome.storage.local.get("pendingPrompt")
         .then((stored) => {
           const prompt = stored.pendingPrompt;
@@ -650,6 +651,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const operation = String(message.operation || "").trim();
     if (!["create-project", "analyze-project"].includes(operation)) { sendResponse({ ok: false, error: "Invalid operation." }); return false; }
     globalThis.LovaRPMLicense?.preparePrompt?.(operation, message.payload || {})
+      .then(async (prompt) => {
+        if (operation !== "analyze-project") return prompt;
+        const payload = message.payload || {};
+        const stored = await chrome.storage.local.get("projectSkillSelections");
+        const skills = stored.projectSkillSelections?.[payload.lovableProjectId] || [];
+        return assemblePrmBuildRequest({
+          ...payload,
+          text: prompt,
+          url: payload.sourceUrl || "",
+        }, skills);
+      })
       .then((prompt) => sendResponse({ ok: true, prompt }))
       .catch((error) => sendResponse({ ok: false, error: error instanceof Error ? error.message : String(error) }));
     return true;

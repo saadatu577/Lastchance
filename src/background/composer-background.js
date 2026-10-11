@@ -131,9 +131,9 @@ async function refreshChatGptResult(projectId) {
 }
 
 async function forwardComposerObjective(message, sender) {
-  const objective = String(message.objective || "").trim();
+  const objective = String(message.objective || "");
   const projectId = String(message.projectId || "").trim();
-  if (!objective) throw new Error("Enter what you want to change.");
+  if (!objective.trim()) throw new Error("Enter what you want to change.");
   if (!projectId) throw new Error("Could not identify the platform project.");
   if (!sender?.tab?.id) throw new Error("The platform tab is unavailable.");
 

@@ -4,7 +4,6 @@
   window.__LOVABURST_CHATGPT_BRIDGE__ = true;
 
   const SOURCE = "chatgpt";
-  const PRM_WRAPPER = `[PRM_WRAPPER]\n\nExecute the user's request accurately and completely.\nInspect before changing. Preserve existing functionality and explicit requirements.\nMake the smallest safe changes necessary.\nVerify and repair task-caused errors before finishing.\nThe user's request is the source of truth; do not override it.\n\nFINAL RESPONSE:\nBriefly report what changed, key files, and validations actually performed.\n\nFinish with exactly one status:\n[PRM_DONE]\n[PRM_BLOCKED]\n[PRM_ERROR]`;
   const COMPOSER_SELECTORS = [
     "#prompt-textarea",
     'textarea[data-testid="prompt-textarea"]',
@@ -30,10 +29,13 @@
     "[LOVARPM_DONE]": "done",
     "[LOVARPM_BLOCKED]": "blocked",
     "[LOVARPM_ERROR]": "error",
+    "[PRM_DONE]": "done",
+    "[PRM_BLOCKED]": "blocked",
+    "[PRM_ERROR]": "error",
   });
-  const REQUEST_MARKERS = ["[LOVABURST_REQUEST_V3]", "[LOVABURST_REQUEST_V2]", "[LOVABURST_REQUEST_V1]", "[LOVARPM_REQUEST_V3]", "[LOVARPM_REQUEST_V2]", "[LOVARPM_REQUEST_V1]"];
+  const REQUEST_MARKERS = ["[PRM_BUILD_REQUEST_V5]", "[PRM_BUILD_REQUEST_V4]", "[LOVABURST_REQUEST_V3]", "[LOVABURST_REQUEST_V2]", "[LOVABURST_REQUEST_V1]", "[LOVARPM_REQUEST_V3]", "[LOVARPM_REQUEST_V2]", "[LOVARPM_REQUEST_V1]"];
   const isLovaRPMRequest = (text) => REQUEST_MARKERS.some((marker) => String(text || "").includes(marker));
-  const PROJECT_ID_PATTERN = /(?:LOVABLE_PROJECT|BASE44_APP):\s*([A-Za-z0-9-]+)/i;
+  const PROJECT_ID_PATTERN = /(?:LOVABLE_PROJECT|BASE44_APP|lovable_project_id):\s*([A-Za-z0-9-]+)/i;
   const RUN_STATUS_STORAGE_KEY = "projectRunStatuses";
   const LARGE_PROMPT_THRESHOLD = 12000;
   const REQUEST_HEADER_SCAN_LIMIT = 4096;
@@ -231,7 +233,7 @@
     return { confirmed: false, signal: "timeout" };
   }
 
-  async function submitPrompt(prompt, options = {}) {
+  async function submitPrompt(prompt) {
     if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
       return { ok: false, error: "Prompt is empty or invalid." };
     }
@@ -251,10 +253,7 @@
     }
     const authorizationDeadline = performance.now() + remainingMs;
 
-    const originalPrompt = prompt.trim();
-    const normalizedPrompt = options.implementationTask === true && !originalPrompt.startsWith(PRM_WRAPPER)
-      ? `${PRM_WRAPPER}\n\n${originalPrompt}`
-      : originalPrompt;
+    const normalizedPrompt = prompt;
     const baseline = countUserMessages();
     setComposerText(composer, normalizedPrompt);
     await sleep(normalizedPrompt.length >= LARGE_PROMPT_THRESHOLD ? 180 : 120);
@@ -675,7 +674,7 @@
       }
 
       busy = true;
-      submitPrompt(message.prompt, { implementationTask: message.implementationTask === true })
+      submitPrompt(message.prompt)
         .then(sendResponse)
         .catch((error) => sendResponse({ ok: false, error: String(error) }))
         .finally(() => {

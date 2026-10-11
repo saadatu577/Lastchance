@@ -75,7 +75,7 @@
       const files = await attachmentsApi.serialize(selected);
       const response = await chrome.runtime.sendMessage({
         type: "LOVABURST_SUBMIT_WITH_ATTACHMENTS",
-        text: input.value.trim(),
+        text: input.value,
         attachments: files,
         projectId: activeWorkspace.lovableProjectId,
         repository: activeWorkspace.repository || "",

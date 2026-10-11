@@ -240,8 +240,8 @@ function renderSendButton(sending = false) {
 
 async function sendCommand() {
   if (globalThis.__LOVABURST_POPUP_ATTACHMENTS__?.hasFiles?.()) return;
-  const objective = ui.commandInput.value.trim();
-  if (!objective) { ui.commandInput.focus(); showFeedback("Enter what you want to change."); return; }
+  const objective = ui.commandInput.value;
+  if (!objective.trim()) { ui.commandInput.focus(); showFeedback("Enter what you want to change."); return; }
   if (!workspace.lovableProjectId) { showFeedback(`Open the ${activeBuilderName()} project you want to change.`); return; }
   if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(String(workspace.repository || "").trim())) {
     showFeedback("Connect this project to GitHub to send requests through LovaRPM.", "error");

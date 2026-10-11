@@ -1,4 +1,4 @@
-import { withSkillInstructions } from "../shared/skill-instructions.js";
+import { assemblePrmBuildRequest } from "../shared/prm-build-request.js";
 
 const SKILL_IDS = new Set([
   "interface-premium",
@@ -109,11 +109,11 @@ async function ensureBridges(tabId) {
 }
 
 async function submit(message, sender) {
-  const text = String(message.text || "").trim();
+  const text = String(message.text || "");
   const attachments = Array.isArray(message.attachments) ? message.attachments.slice(0, 5) : [];
   const projectId = String(message.projectId || "").trim();
 
-  if (!text && !attachments.length) throw new Error("Enter a message or add an attachment.");
+  if (!text.trim() && !attachments.length) throw new Error("Enter a message or add an attachment.");
   if (!projectId) throw new Error("Could not identify the platform project.");
 
   const stored = await chrome.storage.local.get(["workspaceBindings", "config"]);
@@ -136,7 +136,7 @@ async function submit(message, sender) {
 
   const preparedPrompt = await globalThis.LovaRPMLicense?.preparePrompt?.("main", payload);
   if (!preparedPrompt) throw new Error("The server did not prepare the attachment operation.");
-  const prompt = withSkillInstructions(preparedPrompt, payload.skills);
+  const prompt = await assemblePrmBuildRequest({ ...payload, text: preparedPrompt }, payload.skills);
   const tab = await chat(projectId);
   const source = sender?.tab?.id ? await chrome.tabs.get(sender.tab.id).catch(() => null) : null;
   const wasActive = Boolean(tab.active);

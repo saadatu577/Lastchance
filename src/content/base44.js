@@ -59,7 +59,7 @@
   }
 
   async function rememberObjective(current, text) {
-    if (!current.lovableProjectId || !text) return;
+    if (!current.lovableProjectId || !text.trim()) return;
     const stored = await chrome.storage.local.get("projectChatBindings");
     const bindings = stored.projectChatBindings || {};
     const record = bindings[current.lovableProjectId] || { projectId: current.lovableProjectId, conversations: [], recentObjectives: [], activeConversationId: "" };
@@ -102,9 +102,9 @@
       return true;
     }
     if (message?.type === "LOVABURST_SUBMIT_OBJECTIVE") {
-      const objective = String(message.objective || "").trim();
+      const objective = String(message.objective || "");
       const skills = Array.isArray(message.skills) ? message.skills.filter((item) => typeof item === "string").slice(0, 42) : [];
-      if (!objective) { sendResponse({ ok: false, error: "Enter what you want to change." }); return false; }
+      if (!objective.trim()) { sendResponse({ ok: false, error: "Enter what you want to change." }); return false; }
       submitObjective(objective, skills).then(() => sendResponse({ ok: true })).catch((error) => sendResponse({ ok: false, error: error instanceof Error ? error.message : String(error) }));
       return true;
     }

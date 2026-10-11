@@ -34,9 +34,9 @@
   function readComposerText(element) {
     if (!element) return "";
     if (element instanceof HTMLTextAreaElement || element instanceof HTMLInputElement) {
-      return element.value.trim();
+      return element.value;
     }
-    return (element.innerText || element.textContent || "").trim();
+    return element.innerText || element.textContent || "";
   }
 
   function findComposer() {
@@ -380,7 +380,7 @@
 
   async function capturePrompt(button) {
     const text = readComposerText(composer);
-    if (!text) {
+    if (!text.trim()) {
       button.textContent = "Enter a prompt first";
       button.disabled = true;
       window.setTimeout(() => resetButton(button), 1400);
@@ -528,12 +528,12 @@
     }
 
     if (message?.type === "LOVABURST_SUBMIT_OBJECTIVE") {
-      const objective = String(message.objective || "").trim();
+      const objective = String(message.objective || "");
       const skills = Array.isArray(message.skills)
         ? message.skills.filter((skill) => typeof skill === "string" && /^[a-z0-9-]{2,40}$/i.test(skill)).slice(0, 42)
         : [];
 
-      if (!objective) {
+      if (!objective.trim()) {
         sendResponse({ ok: false, error: "Enter what you want to change." });
         return false;
       }
